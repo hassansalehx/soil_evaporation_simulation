@@ -5,7 +5,7 @@ This repo simulates soil evaporation using the soil evaporation capacitance (SEC
 
 This notebook imports soil parameters based on the selected soil types that represent the study area taken from [Lehman et al. (2018)](http://dx.doi.org/10.1029/2018GL078803) and shapefiles containing the initial water content (in mm). The code processes the data according to the equations detailed in the supplementary materials of [Or and Lehman (2019)](https://doi.org/10.1029/2018WR024050) and visualizes the accumulated evaporation volume for each soil type.
 
-This work is part of the study titled **"Intensifying Tropical Cyclone in the Arabian Sea Replenish Depleting Aquifers"** (under review in *Nature Communications Earth and Environment*).
+This work is part of the study titled **"Intensifying Tropical Cyclone in the Arabian Sea Replenish Depleting Aquifers"** (under review).
 
 The simulation proceeds by iteratively reducing the soil water content until the moisture reaches a residual value, applying different equations in:
 - **Stage 1:** When water content is above the critical threshold.

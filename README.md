@@ -8,8 +8,8 @@ This notebook imports soil parameters based on the selected soil types that repr
 This work is part of the study titled **"Intensifying Tropical Cyclone in the Arabian Sea Replenish Depleting Aquifers"** (under review in *Nature Communications Earth and Environment*).
 
 The simulation proceeds by iteratively reducing the soil water content until the moisture reaches a residual value, applying different equations in:
- **Stage 1:** When water content is above the critical threshold.
- **Stage 2:** When water content falls below the critical threshold.
+- **Stage 1:** When water content is above the critical threshold.
+- **Stage 2:** When water content falls below the critical threshold.
 
 ## Repository Structure
 
@@ -27,12 +27,12 @@ soil_evaporation_capacitance/
 ├── requirements.txt
 └── LICENSE
 
-
+```
 
 ## Instructions
- **Data Organization:** Ensure all data files are placed in their respective folders as shown in the structure above.
- **Running the Notebook:** Open `soil_evap_sec.ipynb` in Jupyter and run the cells sequentially to load the data, perform the simulation, and view the plots.
- **Dependencies:** Install the required Python packages using:
+- **Data Organization:** Ensure all data files are placed in their respective folders as shown in the structure above.
+- **Running the Notebook:** Open `soil_evap_sec.ipynb` in Jupyter and run the cells sequentially to load the data, perform the simulation, and view the plots.
+- **Dependencies:** Install the required Python packages using:
 
 pip install -r requirements.txt
 

@@ -1,7 +1,7 @@
 # Soil Evaporation Simulation
 
 ## Introduction
-This notebook demonstrates the simulation of soil evaporation using the soil evaporation capacitance (SEC) model proposed by [Or and Lehman (2019)](https://doi.org/10.1029/2018WR024050). The goal is to simulate how soil moisture evaporates over time following tropical cyclone rainfall under different conditions using a capacitance approach. The model is initialized with moisture content (θ) and, based on soil parameters and the potential evaporation, the evaporation rate changes.
+This repo simulates soil evaporation using the soil evaporation capacitance (SEC) model proposed by [Or and Lehman (2019)](https://doi.org/10.1029/2018WR024050). The goal is to simulate how soil moisture evaporates over time following tropical cyclone rainfall under different conditions using a capacitance approach. The model is initialized with moisture content (θ) and, based on soil parameters and the potential evaporation, the evaporation rate changes.
 
 This notebook imports soil parameters based on the selected soil types that represent the study area taken from [Lehman et al. (2018)](http://dx.doi.org/10.1029/2018GL078803) and shapefiles containing the initial water content (in mm). The code processes the data according to the equations detailed in the supplementary materials of [Or and Lehman (2019)](https://doi.org/10.1029/2018WR024050) and visualizes the accumulated evaporation volume for each soil type.
 

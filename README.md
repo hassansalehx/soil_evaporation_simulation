@@ -10,7 +10,10 @@ This repository accompanies **Intensifying tropical cyclones in the Arabian Sea 
 
 ```text
 notebooks/   # soil_evap_sec.ipynb — main analysis
+src/         # sec_evaporation.py — SEC model functions
+scripts/     # run_simulation.py — CLI runner
 data/        # soil parameters + infiltration shapefiles (2011, 2018, 2020)
+outputs/     # figures written by the notebook / run script
 ```
 
 ## Setup

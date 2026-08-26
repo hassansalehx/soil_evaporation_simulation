@@ -14,5 +14,7 @@ Thumbs.db
 .vscode/
 .idea/
 
-# Secrets
-.env
+outputs/**
+!outputs/**/
+!outputs/**/.gitkeep
+!outputs/figures/**

@@ -1,4 +1,10 @@
-"""Soil evaporation capacitance (SEC) model utilities."""
+"""
+Soil evaporation capacitance (SEC) model utilities.
+
+Simulates post-infiltration soil evaporation (km³) through time (days) using the
+SEC framework of Or & Lehman (2019). Inputs are infiltration shapefiles (initial
+moisture ``s_mm``, polygon ``area_m2``) and soil hydraulic parameters from Excel.
+"""
 
 from __future__ import annotations
 
@@ -8,15 +14,17 @@ import geopandas as gpd
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+from matplotlib.ticker import MultipleLocator
 from tqdm.auto import tqdm
 
-# Stage-2 evaporation constants (Or & Lehman 2019 appendix workflow)
-VAP_JUMP = 10
-E2 = 1
+# Stage-2 evaporation constants from the Or & Lehman (2019) appendix workflow.
+VAP_JUMP = 10  # vapour-pressure jump term in the stage-2 equation
+E2 = 1  # evaporation scaling factor in the stage-2 equation
 
-# Tropical-cyclone infiltration years in the shipped shapefiles
+# Tropical-cyclone years represented in data/Infiltration_output/.
 DEFAULT_YEARS = [2011, 2018, 2020]
 
+# Infiltration shapefiles shipped for each year (four soil classes).
 SHAPEFILE_TYPES = [
     "Dunes.shp",
     "Alluvium.shp",
@@ -24,6 +32,8 @@ SHAPEFILE_TYPES = [
     "Karstified Limestone.shp",
 ]
 
+# Maps each infiltration soil class to its SEC parameter row in soil_param.xlsx.
+# Dunes and karstified limestone share USMo1; alluvium uses USMo7; hard limestone USDk1.
 SOIL_TYPE_PARAM_MAP = {
     "dunes": "USMo1",
     "karstified_limestone": "USMo1",
@@ -33,7 +43,7 @@ SOIL_TYPE_PARAM_MAP = {
 
 
 def repo_root(start: Path | None = None) -> Path:
-    """Return repository root whether cwd is root or notebooks/."""
+    """Return repository root whether the working directory is root or notebooks/."""
     base = Path.cwd() if start is None else start
     if not (base / "data").exists() and (base.parent / "data").exists():
         base = base.parent
@@ -41,6 +51,7 @@ def repo_root(start: Path | None = None) -> Path:
 
 
 def load_soil_params(base_dir: Path | None = None) -> pd.DataFrame:
+    """Load SEC soil parameters (sheet ``code``) from data/soil_param.xlsx."""
     root = repo_root(base_dir)
     return pd.read_excel(root / "data" / "soil_param.xlsx", sheet_name="code")
 
@@ -49,21 +60,31 @@ def load_infiltration_gdfs(
     years: list[int] | None = None,
     base_dir: Path | None = None,
 ) -> dict[int, dict[str, gpd.GeoDataFrame]]:
+    """
+    Load post-infiltration moisture shapefiles for each TC year and soil type.
+
+    Returns
+    -------
+    dict
+        ``{year: {soil_type: GeoDataFrame}}`` with columns including ``s_mm`` and ``area_m2``.
+    """
     root = repo_root(base_dir)
     years = years or DEFAULT_YEARS
     shapefile_base = root / "data" / "Infiltration_output"
     gdfs: dict[int, dict[str, gpd.GeoDataFrame]] = {}
+
     for year in years:
         year_path = shapefile_base / str(year)
         gdfs[year] = {}
         for shapefile in SHAPEFILE_TYPES:
-            key = shapefile.split(".")[0].replace(" ", "_").lower()
-            gdfs[year][key] = gpd.read_file(year_path / shapefile)
+            soil_type = shapefile.split(".")[0].replace(" ", "_").lower()
+            gdfs[year][soil_type] = gpd.read_file(year_path / shapefile)
+
     return gdfs
 
 
 def calculate_k_eff(ks: float, alpha: float, h_crit: float, n: float, m: float) -> float:
-    """Effective hydraulic conductivity (mm/day)."""
+    """Effective hydraulic conductivity (mm/day) for stage-1 evaporation."""
     term = (1 + (alpha * h_crit) ** n) ** (-m)
     inner = 1 - (1 - (1 / (1 + (alpha * h_crit) ** n))) ** m
     k_eff = 4 * ks * np.sqrt(term) * inner**2
@@ -82,10 +103,10 @@ def simulate_soil_evaporation_volume(
     gdf : GeoDataFrame
         Must contain ``s_mm`` (initial moisture, mm) and ``area_m2``.
     param_row : Series
-        One row from the soil parameters table (``site`` column names output).
+        One row from the soil parameters table; output column is ``site``.
     """
     delta_theta = param_row["theta_crit"] - param_row["theta_res"] / 2
-    dfs: list[pd.DataFrame] = []
+    cell_results: list[pd.DataFrame] = []
 
     for cell_num, (s, area) in enumerate(
         tqdm(
@@ -101,8 +122,6 @@ def simulate_soil_evaporation_volume(
             s = theta * (param_row["lc"] * 1000)
         elif theta <= param_row["theta_res"]:
             continue
-        else:
-            s = s
 
         day = 0
         days2 = 0
@@ -170,27 +189,28 @@ def simulate_soil_evaporation_volume(
             theta = cum_s / (param_row["lc"] * 1000)
             es_list.append(cumulative_vol)
 
-        dfs.append(pd.DataFrame({cell_num: es_list}))
+        cell_results.append(pd.DataFrame({cell_num: es_list}))
 
-    if not dfs:
+    if not cell_results:
         return pd.DataFrame({param_row["site"]: []})
 
-    soil_evaporation_df = pd.concat(dfs, axis=1)
-    soil_evaporation_df_filled = soil_evaporation_df.ffill(axis=0)
-    sum_columns = soil_evaporation_df_filled.sum(axis=1)
-    return pd.DataFrame({param_row["site"]: sum_columns})
+    by_cell = pd.concat(cell_results, axis=1).ffill(axis=0)
+    return pd.DataFrame({param_row["site"]: by_cell.sum(axis=1)})
 
 
 def make_result_key(year: int, soil_type: str) -> str:
+    """Build a stable dictionary key for one year × soil-type simulation."""
     return f"{year}|{soil_type}"
 
 
 def parse_result_key(key: str) -> tuple[int, str]:
+    """Split a result key into ``(year, soil_type)``."""
     year_str, soil_type = key.split("|", 1)
     return int(year_str), soil_type
 
 
 def param_row_for_soil_type(soil_params: pd.DataFrame, soil_type: str) -> pd.Series:
+    """Return the SEC parameter row assigned to a given soil class."""
     site = SOIL_TYPE_PARAM_MAP[soil_type.lower()]
     match = soil_params.loc[soil_params["site"] == site]
     if match.empty:
@@ -203,22 +223,47 @@ def run_all_simulations(
     soil_params: pd.DataFrame,
     years: list[int] | None = None,
 ) -> dict[str, pd.DataFrame]:
+    """
+    Run SEC evaporation for every TC year and soil type.
+
+    Returns one time series per combination (typically 3 years × 4 soils = 12 entries).
+    """
     years = years or sorted(gdfs.keys())
     results: dict[str, pd.DataFrame] = {}
+
     for year in years:
         for soil_type, gdf in gdfs[year].items():
             param_row = param_row_for_soil_type(soil_params, soil_type)
             key = make_result_key(year, soil_type)
             results[key] = simulate_soil_evaporation_volume(gdf, param_row)
+
     return results
+
+
+def _align_and_sum_soil_types(year_data: dict[str, pd.DataFrame]) -> pd.DataFrame:
+    """
+    Align soil-type evaporation series to a common day index and sum to Total.
+
+    Shorter series are forward-filled to the longest length before summing.
+    """
+    max_length = max(df.shape[0] for df in year_data.values())
+    yearly = pd.DataFrame(index=range(max_length))
+
+    for soil_type, df in year_data.items():
+        if df.empty:
+            continue
+        aligned = df.reindex(range(max_length)).ffill()
+        yearly[soil_type] = aligned.iloc[:, 0]
+
+    yearly["Total"] = yearly.sum(axis=1)
+    return yearly
 
 
 def prepare_evaporation_data(results: dict[str, pd.DataFrame]) -> dict[int, pd.DataFrame]:
     """
-    Aggregate soil-type series by year.
+    Merge per-soil simulations into one table per TC year.
 
-    Columns with different simulation lengths are forward-filled to the longest
-    series before summing (same behavior as the original notebook).
+    Each yearly table has columns for the four soil types plus ``Total``.
     """
     processed: dict[int, pd.DataFrame] = {}
     years = sorted({parse_result_key(k)[0] for k in results})
@@ -229,22 +274,47 @@ def prepare_evaporation_data(results: dict[str, pd.DataFrame]) -> dict[int, pd.D
             for k, df in results.items()
             if parse_result_key(k)[0] == year
         }
-        if not year_data:
-            continue
-
-        max_length = max(df.shape[0] for df in year_data.values())
-        total_evap_df = pd.DataFrame(index=range(max_length))
-
-        for soil_type, df in year_data.items():
-            if df.empty:
-                continue
-            df_reindexed = df.reindex(range(max_length)).ffill()
-            total_evap_df[soil_type] = df_reindexed.iloc[:, 0]
-
-        total_evap_df["Total"] = total_evap_df.sum(axis=1)
-        processed[year] = total_evap_df
+        if year_data:
+            processed[year] = _align_and_sum_soil_types(year_data)
 
     return processed
+
+
+def summarize_simulation_runs(results: dict[str, pd.DataFrame]) -> pd.DataFrame:
+    """
+    Build a readable summary of all year × soil-type simulation outputs.
+
+    Useful for confirming that every expected combination ran successfully.
+    """
+    rows = []
+    for key, df in sorted(results.items()):
+        year, soil_type = parse_result_key(key)
+        final_km3 = float(df.iloc[-1, 0]) if len(df) else float("nan")
+        rows.append(
+            {
+                "year": year,
+                "soil_type": soil_type,
+                "param_site": SOIL_TYPE_PARAM_MAP.get(soil_type, ""),
+                "n_days": len(df),
+                "final_evaporation_km3": round(final_km3, 4),
+            }
+        )
+    return pd.DataFrame(rows)
+
+
+def summarize_yearly_totals(processed_data: dict[int, pd.DataFrame]) -> pd.DataFrame:
+    """Summarize final cumulative evaporation (Total column) for each TC year."""
+    rows = []
+    for year in sorted(processed_data):
+        df = processed_data[year]
+        rows.append(
+            {
+                "year": year,
+                "n_days": len(df),
+                "final_total_km3": round(float(df["Total"].iloc[-1]), 4),
+            }
+        )
+    return pd.DataFrame(rows)
 
 
 def plot_soil_evaporation(
@@ -252,6 +322,7 @@ def plot_soil_evaporation(
     save_path: Path | str | None = None,
     show: bool = True,
 ) -> plt.Figure:
+    """Plot accumulated evaporation by soil type and Total for each TC year."""
     years = sorted(processed_data.keys())
     labels = ["(a)", "(b)", "(c)"]
     fig, axes = plt.subplots(1, len(years), figsize=(16, 5), gridspec_kw={"wspace": 0.2})
@@ -271,8 +342,10 @@ def plot_soil_evaporation(
         ax.plot(df.index, df["Total"], label="Total", linestyle="--", linewidth=2, color="black")
         ax.set_xlabel("Days", fontsize=15)
         ax.set_xlim(0, len(df))
-        max_y_value = df[soil_cols].max().max()
-        ax.set_ylim(0, max_y_value + 1)
+
+        ymax = float(df["Total"].max())
+        ax.set_ylim(0, ymax + 1)
+        ax.yaxis.set_major_locator(MultipleLocator(0.5))
 
         if idx == 0:
             ax.set_ylabel("Accumulated Soil Evaporation (km$^3$)", fontsize=15)

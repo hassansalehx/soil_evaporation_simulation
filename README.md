@@ -2,7 +2,7 @@
 
 Simulation of post-rainfall soil evaporation using the soil evaporation capacitance (SEC) model of [Or and Lehman (2019)](https://doi.org/10.1029/2018WR024050), applied to tropical-cyclone infiltration scenarios in the Arabian Peninsula.
 
-This repository accompanies **Intensifying tropical cyclone in the Arabian Sea replenish depleting aquifers** ([Saleh et al., 2025](https://doi.org/10.1038/s43247-025-02493-w), *Communications Earth & Environment*).
+This repository accompanies **Intensifying tropical cyclones in the Arabian Sea replenish depleting aquifers** ([Saleh et al., 2025](https://doi.org/10.1038/s43247-025-02493-w), *Communications Earth & Environment*).
 
 **Author:** Hassan Saleh (Western Michigan University)
 
@@ -39,7 +39,7 @@ See [`data/README.md`](data/README.md) for file descriptions.
 
 Please cite the paper:
 
-> Saleh, H., Sultan, M., Becker, R. et al. Intensifying tropical cyclone in the Arabian Sea replenish depleting aquifers. *Commun Earth Environ* **6**, 259 (2025). https://doi.org/10.1038/s43247-025-02493-w
+> Saleh, H., Sultan, M., Yan, E. et al. Intensifying tropical cyclones in the Arabian Sea replenish depleting aquifers. *Commun Earth Environ* **6**, 536 (2025). https://doi.org/10.1038/s43247-025-02493-w
 
 Software metadata: [`CITATION.cff`](CITATION.cff).
 

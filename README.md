@@ -1,42 +1,48 @@
-# Soil Evaporation Simulation
+# Soil evaporation simulation (SEC model)
 
-## Introduction
-This repo simulates soil evaporation using the soil evaporation capacitance (SEC) model proposed by [Or and Lehman (2019)](https://doi.org/10.1029/2018WR024050). The goal is to simulate how soil moisture evaporates over time following tropical cyclone rainfall under different conditions using a capacitance approach. The model is initialized with moisture content (θ) and, based on soil parameters and the potential evaporation, the evaporation rate changes.
+Simulation of post-rainfall soil evaporation using the soil evaporation capacitance (SEC) model of [Or and Lehman (2019)](https://doi.org/10.1029/2018WR024050), applied to tropical-cyclone infiltration scenarios in the Arabian Peninsula.
 
-This notebook imports soil parameters based on the selected soil types that represent the study area taken from [Lehman et al. (2018)](http://dx.doi.org/10.1029/2018GL078803) and shapefiles containing the initial water content (in mm). The code processes the data according to the equations detailed in the supplementary materials of [Or and Lehman (2019)](https://doi.org/10.1029/2018WR024050) and visualizes the accumulated evaporation volume for each soil type.
+This repository accompanies **Intensifying tropical cyclone in the Arabian Sea replenish depleting aquifers** ([Saleh et al., 2025](https://doi.org/10.1038/s43247-025-02493-w), *Communications Earth & Environment*).
 
-This work is part of the study titled **"Intensifying Tropical Cyclone in the Arabian Sea Replenish Depleting Aquifers"** https://doi.org/10.1038/s43247-025-02493-w.
+**Author:** Hassan Saleh (Western Michigan University)
 
-The simulation proceeds by iteratively reducing the soil water content until the moisture reaches a residual value, applying different equations in:
-- **Stage 1:** When water content is above the critical threshold.
-- **Stage 2:** When water content falls below the critical threshold.
+## Repository layout
 
-## Repository Structure
-
-```
-soil_evaporation_capacitance/
-├── data/
-│   ├── soil_param_related.xlsx
-│   ├── Infiltration_output/
-│   │   ├── 2011/
-│   │   ├── 2018/
-│   │   └── 2020/
-├── notebooks/
-│   └── soil_evap_sec.ipynb
-├── README.md
-├── requirements.txt
-└── LICENSE
-
+```text
+notebooks/   # soil_evap_sec.ipynb — main analysis
+data/        # soil parameters + infiltration shapefiles (2011, 2018, 2020)
 ```
 
-## Instructions
-- **Data Organization:** Ensure all data files are placed in their respective folders as shown in the structure above.
-- **Running the Notebook:** Open `soil_evap_sec.ipynb` in Jupyter and run the cells sequentially to load the data, perform the simulation, and view the plots.
-- **Dependencies:** Install the required Python packages using:
+## Setup
 
+From the repository root:
+
+```bash
+cd /path/to/this/repo
+python -m venv .venv
+source .venv/bin/activate   # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
+python -m ipykernel install --user --name soil-evap --display-name "Python (soil-evap)"
+```
 
+## Run
+
+Open [`notebooks/soil_evap_sec.ipynb`](notebooks/soil_evap_sec.ipynb) with the **repository root as the working directory** and run cells sequentially.
+
+The notebook loads soil parameters from `data/soil_param.xlsx` (from [Lehman et al., 2018](http://dx.doi.org/10.1029/2018GL078803)) and initial moisture shapefiles under `data/Infiltration_output/<year>/` for four soil types (Alluvium, Dunes, Hard Limestone, Karstified Limestone).
+
+## Data
+
+See [`data/README.md`](data/README.md) for file descriptions.
+
+## Citation
+
+Please cite the paper:
+
+> Saleh, H., Sultan, M., Becker, R. et al. Intensifying tropical cyclone in the Arabian Sea replenish depleting aquifers. *Commun Earth Environ* **6**, 259 (2025). https://doi.org/10.1038/s43247-025-02493-w
+
+Software metadata: [`CITATION.cff`](CITATION.cff).
 
 ## License
-This project is licensed under the terms specified in the LICENSE file.
 
+MIT — see [`LICENSE`](LICENSE).

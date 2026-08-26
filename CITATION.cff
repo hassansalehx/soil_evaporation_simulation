@@ -1,0 +1,31 @@
+cff-version: 1.2.0
+message: >
+  If you use this software, please cite the associated paper (see README).
+title: "Soil evaporation simulation using the SEC model for tropical cyclone recharge scenarios"
+authors:
+  - family-names: Saleh
+    given-names: Hassan
+    affiliation: Western Michigan University
+version: 1.0.0
+date-released: "2026-08-26"
+license: MIT
+repository-code: "https://github.com/hassansalehx/soil_evaporation_simulation"
+preferred-citation:
+  type: article
+  title: "Intensifying tropical cyclone in the Arabian Sea replenish depleting aquifers"
+  authors:
+    - family-names: Saleh
+      given-names: Hassan
+    - family-names: Sultan
+      given-names: Mohamed
+    - family-names: Becker
+      given-names: Richard
+  doi: "10.1038/s43247-025-02493-w"
+  journal: "Communications Earth & Environment"
+  year: 2025
+keywords:
+  - soil evaporation
+  - capacitance model
+  - tropical cyclone
+  - infiltration
+  - Arabian Peninsula

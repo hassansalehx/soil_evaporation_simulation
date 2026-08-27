@@ -9,9 +9,9 @@ This repository accompanies **Intensifying tropical cyclones in the Arabian Sea 
 ## Repository layout
 
 ```text
-notebooks/   # soil_evap_sec.ipynb — main analysis
-src/         # sec_evaporation.py — SEC model functions
-scripts/     # run_simulation.py — CLI runner
+notebooks/   # soil_evap_sec.ipynb - main analysis
+src/         # sec_evaporation.py - SEC model functions
+scripts/     # run_simulation.py - CLI runner
 data/        # soil parameters + infiltration shapefiles (2011, 2018, 2020)
 outputs/     # figures written by the notebook / run script
 ```
@@ -48,4 +48,4 @@ Software metadata: [`CITATION.cff`](CITATION.cff).
 
 ## License
 
-MIT — see [`LICENSE`](LICENSE).
+MIT - see [`LICENSE`](LICENSE).

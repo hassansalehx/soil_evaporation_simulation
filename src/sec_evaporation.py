@@ -24,6 +24,9 @@ E2 = 1  # evaporation scaling factor in the stage-2 equation
 # Tropical-cyclone years represented in data/Infiltration_output/.
 DEFAULT_YEARS = [2011, 2018, 2020]
 
+# Decimal places for displayed km³ values in summary tables and QC output.
+KM3_DISPLAY_DECIMALS = 2
+
 # Infiltration shapefiles shipped for each year (four soil classes).
 SHAPEFILE_TYPES = [
     "Dunes.shp",
@@ -226,7 +229,7 @@ def run_all_simulations(
     """
     Run SEC evaporation for every TC year and soil type.
 
-    Returns one time series per combination (typically 3 years × 4 soils = 12 entries).
+    Returns one time series per year × soil-type combination.
     """
     years = years or sorted(gdfs.keys())
     results: dict[str, pd.DataFrame] = {}
@@ -281,11 +284,7 @@ def prepare_evaporation_data(results: dict[str, pd.DataFrame]) -> dict[int, pd.D
 
 
 def summarize_simulation_runs(results: dict[str, pd.DataFrame]) -> pd.DataFrame:
-    """
-    Build a readable summary of all year × soil-type simulation outputs.
-
-    Useful for confirming that every expected combination ran successfully.
-    """
+    """Summary of final cumulative evaporation (km³) per year and soil type."""
     rows = []
     for key, df in sorted(results.items()):
         year, soil_type = parse_result_key(key)
@@ -296,7 +295,7 @@ def summarize_simulation_runs(results: dict[str, pd.DataFrame]) -> pd.DataFrame:
                 "soil_type": soil_type,
                 "param_site": SOIL_TYPE_PARAM_MAP.get(soil_type, ""),
                 "n_days": len(df),
-                "final_evaporation_km3": round(final_km3, 4),
+                "final_evaporation_km3": round(final_km3, KM3_DISPLAY_DECIMALS),
             }
         )
     return pd.DataFrame(rows)
@@ -311,7 +310,7 @@ def summarize_yearly_totals(processed_data: dict[int, pd.DataFrame]) -> pd.DataF
             {
                 "year": year,
                 "n_days": len(df),
-                "final_total_km3": round(float(df["Total"].iloc[-1]), 4),
+                "final_total_km3": round(float(df["Total"].iloc[-1]), KM3_DISPLAY_DECIMALS),
             }
         )
     return pd.DataFrame(rows)
@@ -321,13 +320,19 @@ def plot_soil_evaporation(
     processed_data: dict[int, pd.DataFrame],
     save_path: Path | str | None = None,
     show: bool = True,
+    verbose: bool = False,
+    figure_size: tuple[float, float] = (16, 5),
 ) -> plt.Figure:
     """Plot accumulated evaporation by soil type and Total for each TC year."""
     years = sorted(processed_data.keys())
     labels = ["(a)", "(b)", "(c)"]
-    fig, axes = plt.subplots(1, len(years), figsize=(16, 5), gridspec_kw={"wspace": 0.2})
+    fig, axes = plt.subplots(
+        1, len(years), figsize=figure_size, constrained_layout=True
+    )
     if len(years) == 1:
         axes = [axes]
+    # Tighten horizontal gaps between panels (constrained_layout default is wide).
+    fig.set_constrained_layout_pads(w_pad=0.02, h_pad=0.02, wspace=0.05, hspace=0.05)
 
     for idx, year in enumerate(years):
         ax = axes[idx]
@@ -365,17 +370,16 @@ def plot_soil_evaporation(
             bbox=dict(facecolor="white", alpha=0.8, edgecolor="none"),
         )
 
-        if len(df) > 100:
+        if verbose and len(df) > 100:
             diff = df["Total"].iloc[-1] - df["Total"].iloc[99]
-            print(f"Difference between last value and day 100 for {year}: {diff:.3f} km³")
+            print(f"Difference between last value and day 100 for {year}: {diff:.2f} km³")
 
-    if len(years) > 1:
-        fig.tight_layout()
     if save_path is not None:
         save_path = Path(save_path)
         save_path.parent.mkdir(parents=True, exist_ok=True)
         fig.savefig(save_path, dpi=200, bbox_inches="tight")
-        print(f"Saved figure: {save_path}")
+        if verbose:
+            print(f"Saved figure: {save_path}")
 
     if show:
         plt.show()

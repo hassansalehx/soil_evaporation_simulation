@@ -10,9 +10,9 @@ Initial post-infiltration soil moisture (mm) by soil type, exported as ESRI shap
 
 | Year | Event context (see paper) |
 |------|---------------------------|
-| 2011 | — |
-| 2018 | — |
-| 2020 | — |
+| 2011 | - |
+| 2018 | - |
+| 2020 | - |
 
 Each year folder contains shapefiles for:
 

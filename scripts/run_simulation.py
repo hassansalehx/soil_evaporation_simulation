@@ -28,7 +28,7 @@ def main() -> None:
     processed = prepare_evaporation_data(results)
 
     out = root / "outputs" / "figures" / "soil_evaporation_by_year.jpeg"
-    plot_soil_evaporation(processed, save_path=out, show=False)
+    plot_soil_evaporation(processed, save_path=out, show=False, verbose=True)
     print("Simulation complete.")
 
 
